@@ -8,9 +8,9 @@ test: test # Optional path to test images
 
 # Classes (example using 80 COCO classes)
 names:
-    0: araignées
+    0: araignees
     1: slimes
-    2: sorcières
+    2: sorcieres
     3: cochons
     4: zombies
     5: squelettes
