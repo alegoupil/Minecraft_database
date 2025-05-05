@@ -1,18 +1,20 @@
-# Dataset root directory relative to the yolov5 directory
+# Dataset root directory
 path: ../Minecraft_database/
 
-# Train/val/test sets: specify directories, *.txt files, or lists
-train: train # 128 images for training
-val: val # 128 images for validation
-test: test # Optional path to test images
+# Paths to training and validation images (relative to this YAML file)
+train: images/train
+val: images/val
 
-# Classes (example using 80 COCO classes)
+# Optional test set
+test: test  # If you don't have one, you can remove this line
+
+# Number of classes and their names
 names:
-    0: araignees
-    1: slimes
-    2: sorcieres
-    3: cochons
-    4: zombies
-    5: squelettes
-    6: endermens
-    7: creepers
+  - araignees
+  - slimes
+  - sorcieres
+  - cochons
+  - zombies
+  - squelettes
+  - endermens
+  - creepers
