@@ -1,20 +1,13 @@
-# Dataset root directory
-path: ../Minecraft_database/
-
-# Paths to training and validation images (relative to this YAML file)
-train: images/train
-val: images/val
-
-# Optional test set
-test: test  # If you don't have one, you can remove this line
-
-# Number of classes and their names
+path: /content/Minecraft_database
+train: train/images
+val: validation/images
+nc: 8
 names:
-  - araignees
-  - slimes
-  - sorcieres
-  - cochons
-  - zombies
-  - squelettes
-  - endermens
-  - creepers
+- araignees
+- slimes
+- sorcieres
+- cochons
+- zombies
+- squelettes
+- endermens
+- creepers
