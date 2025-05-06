@@ -1,0 +1,8 @@
+araignees
+slimes
+sorcieres
+cochons
+zombies
+squelettes
+endermens
+creepers
