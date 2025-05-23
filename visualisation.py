@@ -1,76 +1,78 @@
 import cv2
-import pandas as pd
 import os
 
-# Path to the CSV file and image directory
-CSV_PATH = "data_reduc.csv"
-IMAGE_DIR = "./images_reduc/"
-start_index = 0  # Change this value to start at a different image
+# Paths
+IMAGE_DIR = "./train/images/"
+LABEL_DIR = "./train/labels/"
+CLASSES_PATH = "./classes.txt"
+start_index = 0
 
-# Read the CSV file
-df = pd.read_csv(CSV_PATH)
-
-print("CSV imported")
-
-total_classifications = 0
-
-# Group bounding boxes by image
-image_annotations = {}
-for _, row in df.iterrows():
-    filename = row["Image"]
-    x_min, y_min, width, height = int(row["xMin"]), int(row["yMin"]), int(row["width"]), int(row["height"])
-    x_max, y_max = x_min + width, y_min + height
-    label = row["MobType"]
-    
-    if filename not in image_annotations:
-        image_annotations[filename] = []
-    image_annotations[filename].append((x_min, y_min, x_max, y_max, label))
-
-    total_classifications += 1
-
-print("Data linked to images")
+# Load class names from classes.txt
+if os.path.exists(CLASSES_PATH):
+    with open(CLASSES_PATH, 'r') as f:
+        class_names = [line.strip() for line in f.readlines()]
+else:
+    print("Warning: classes.txt not found. Defaulting to class IDs.")
+    class_names = []
 
 # Get sorted list of images
-image_files = sorted(os.listdir(IMAGE_DIR))
+image_files = sorted([f for f in os.listdir(IMAGE_DIR) if f.endswith(('.jpg', '.png'))])
 
-print("\n------ Results ------")
-print(f"Total images in folder : {len(image_files)}")
-print(f"Images with presence : {len(image_annotations)}")
-print(f"Total classifications : {total_classifications}")
-print("")
-
-# Start index (modify as needed)
-if start_index < 0 or start_index >= len(image_files):
-    start_index = 0
+print("------ YOLO Image Viewer ------")
+print(f"Total images found: {len(image_files)}\n")
 
 index = start_index
 
 while 0 <= index < len(image_files):
     filename = image_files[index]
     image_path = os.path.join(IMAGE_DIR, filename)
-        
+    label_path = os.path.join(LABEL_DIR, os.path.splitext(filename)[0] + ".txt")
+
     image = cv2.imread(image_path)
     if image is None:
-        print(f"Error: Unable to load image {image_path}")
+        print(f"Error loading image: {filename}")
         index += 1
         continue
-        
-    # Draw bounding boxes
-    if filename in image_annotations:
-        for x_min, y_min, x_max, y_max, label in image_annotations[filename]:
-            cv2.rectangle(image, (x_min, y_min), (x_max, y_max), (0, 255, 0), 2)
-            cv2.putText(image, label, (x_min, y_min - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
-        
-    # Update the window with new image and title
-    cv2.imshow("Labeled Image", image)
-    cv2.setWindowTitle("Labeled Image", filename)
+
+    height, width = image.shape[:2]
+
+    # Read YOLO label file if it exists
+    if os.path.exists(label_path):
+        with open(label_path, 'r') as f:
+            for line in f:
+                parts = line.strip().split()
+                if len(parts) != 5:
+                    continue
+                class_id, x_center, y_center, w, h = map(float, parts)
+
+                # Convert normalized values to pixel values
+                x_center *= width
+                y_center *= height
+                w *= width
+                h *= height
+
+                x_min = int(x_center - w / 2)
+                y_min = int(y_center - h / 2)
+                x_max = int(x_center + w / 2)
+                y_max = int(y_center + h / 2)
+
+                # Get label name from classes.txt if available
+                label = class_names[int(class_id)] if int(class_id) < len(class_names) else f"Class {int(class_id)}"
+
+                cv2.rectangle(image, (x_min, y_min), (x_max, y_max), (0, 255, 0), 2)
+                cv2.putText(image, label, (x_min, y_min - 5),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+
+    # Show image with bounding boxes
+    cv2.imshow("YOLO Labeled Image", image)
+    cv2.setWindowTitle("YOLO Labeled Image", filename)
     key = cv2.waitKey(0)
-        
-    if key == 27:  # Press 'Esc' to exit
+
+    if key == 27:  # Esc
         break
-    elif key == ord('d'):  # Press 'D' to go to the next image
+    elif key == ord('d'):  # Next image
         index += 1
-    elif key == ord('q'):  # Press 'A' to go back to the previous image
+    elif key == ord('q'):  # Previous image
         index -= 1
 
 cv2.destroyAllWindows()
